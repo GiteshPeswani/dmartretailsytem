@@ -1,0 +1,238 @@
+<!-- ============================================================
+     LOCAL BLOCKCHAIN AUDIT EXPLORER
+     ============================================================ -->
+
+<!-- Chain Panel Hero Header -->
+<div class="chain-panel mb-0">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="bg-white bg-opacity-10 p-3 rounded-3 d-inline-flex">
+            <i class="bi bi-diagram-3-fill text-white fs-3"></i>
+          </div>
+          <div>
+            <h2 class="fw-bold text-white mb-0">Local Blockchain Audit Explorer</h2>
+            <p class="text-white-50 small mb-0">
+              Public verifiable records on the EVM <code class="text-info">RetailAuditRegistry</code> smart contract
+            </p>
+          </div>
+        </div>
+        <!-- Node Status Chip -->
+        <div class="d-flex flex-wrap gap-2 mt-2">
+          <span class="node-chip" [ngClass]="connected ? '' : 'offline'">
+            <span class="dot" [ngClass]="connected ? 'online pulse' : ''"></span>
+            {{ connected ? 'Hardhat Node Online (RPC :8545)' : 'Node Offline' }}
+          </span>
+          <span class="node-chip" *ngIf="contractReady">
+            <span class="dot online pulse"></span>
+            RetailAuditRegistry Active
+          </span>
+          <span class="node-chip offline" *ngIf="!contractReady">
+            <span class="dot"></span>
+            Contract Not Loaded
+          </span>
+        </div>
+      </div>
+      <button class="btn btn-outline-light btn-sm px-4" (click)="refresh()">
+        <i class="bi bi-arrow-clockwise me-1"></i> Refresh Node
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- Network Health Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card d-flex gap-3 align-items-center" [ngClass]="connected ? 'green' : 'red'">
+        <div class="stat-icon rounded-3" [ngClass]="connected ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+          <i class="bi" [ngClass]="connected ? 'bi-broadcast' : 'bi-x-circle'"></i>
+        </div>
+        <div>
+          <div class="stat-label">Node Connectivity</div>
+          <div class="stat-value small-val">{{ connected ? 'Connected' : 'Offline' }}</div>
+          <div class="stat-sub">EVM Chain ID: 1337 &middot; Local Hardhat</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="stat-card d-flex gap-3 align-items-center" [ngClass]="contractReady ? 'teal' : 'amber'">
+        <div class="stat-icon rounded-3" [ngClass]="contractReady ? 'bg-success-subtle text-success' : 'bg-warning-subtle text-warning'">
+          <i class="bi" [ngClass]="contractReady ? 'bi-shield-check' : 'bi-shield-slash'"></i>
+        </div>
+        <div>
+          <div class="stat-label">Contract Deployment</div>
+          <div class="stat-value small-val">{{ contractReady ? 'Active' : 'Not Loaded' }}</div>
+          <div class="stat-sub">RetailAuditRegistry &middot; Web3j / Ethers.js</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="stat-card indigo d-flex gap-3 align-items-center">
+        <div class="stat-icon bg-primary-subtle text-primary rounded-3">
+          <i class="bi bi-fingerprint"></i>
+        </div>
+        <div>
+          <div class="stat-label">Integrity Protocol</div>
+          <div class="stat-value small-val">Keccak-256</div>
+          <div class="stat-sub">Zero PII On-Chain &middot; Deterministic</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live On-Chain Record Verifier -->
+  <div class="dmart-card mb-4">
+    <div class="dmart-card-head">
+      <div class="dmart-card-icon chain">
+        <i class="bi bi-search"></i>
+      </div>
+      <div>
+        <div class="fw-bold text-dark">Live On-Chain Record Verifier</div>
+        <div class="small text-muted">
+          Query the smart contract directly &mdash; enter any Product ID or Order ID to verify cryptographic data integrity
+        </div>
+      </div>
+    </div>
+    <div class="dmart-card-body">
+      <div class="row g-2 align-items-center mb-3">
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="searchType">
+            <option value="ORDER">Order Record</option>
+            <option value="PRODUCT">Product Record</option>
+          </select>
+        </div>
+        <div class="col-md-6">
+          <input type="number" class="form-control" placeholder="Enter Record ID (e.g. 1)"
+                 [(ngModel)]="searchId" (keyup.enter)="executeVerification()">
+        </div>
+        <div class="col-md-3">
+          <button class="btn btn-chain w-100" [disabled]="!searchId || verifying" (click)="executeVerification()">
+            <span *ngIf="verifying" class="spinner-border spinner-border-sm me-1"></span>
+            {{ verifying ? 'Verifying...' : 'Query Smart Contract' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Verification Result -->
+      <div *ngIf="verificationResult" class="verify-result mt-3"
+           [ngClass]="{
+             'verified':  verificationResult.verified,
+             'tampered':  !verificationResult.verified && verificationResult.blockchainAvailable,
+             'unknown':   !verificationResult.blockchainAvailable
+           }">
+
+        <div class="d-flex flex-column align-items-center mb-3">
+          <i class="bi fs-1 mb-2"
+             [ngClass]="verificationResult.verified ? 'bi-patch-check-fill' : 'bi-exclamation-triangle-fill'"></i>
+          <div class="vr-status">
+            {{ verificationResult.verified
+                ? 'VERIFIED — Record Authentic'
+                : (verificationResult.blockchainAvailable ? 'INTEGRITY MISMATCH' : 'BLOCKCHAIN UNAVAILABLE') }}
+          </div>
+          <p class="vr-msg">{{ verificationResult.message }}</p>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="hash-display" [ngClass]="verificationResult.verified ? 'match' : 'tamper'">
+              <div class="small fw-semibold mb-1 opacity-75">
+                <i class="bi bi-database me-1"></i> Canonical (DB) Hash
+              </div>
+              {{ verificationResult.localHash }}
+            </div>
+          </div>
+          <div class="col-md-6" *ngIf="verificationResult.onChainHash">
+            <div class="hash-display" [ngClass]="verificationResult.verified ? 'match' : 'tamper'">
+              <div class="small fw-semibold mb-1 opacity-75">
+                <i class="bi bi-link-45deg me-1"></i> On-Chain (Smart Contract) Hash
+              </div>
+              {{ verificationResult.onChainHash }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Blockchain Transactions Table -->
+  <div class="dmart-card">
+    <div class="dmart-card-head">
+      <div class="dmart-card-icon">
+        <i class="bi bi-table"></i>
+      </div>
+      <div class="flex-grow-1">
+        <div class="fw-bold text-dark">Recent Blockchain Transactions</div>
+        <div class="small text-muted">All events broadcast to the RetailAuditRegistry smart contract</div>
+      </div>
+      <span class="chip chip-chain ms-auto">{{ transactions.length }} records</span>
+    </div>
+    <div class="dmart-card-body p-0">
+
+      <div *ngIf="loading" class="text-center py-5">
+        <div class="spinner-border text-primary"></div>
+        <p class="text-muted mt-2 small">Fetching on-chain data...</p>
+      </div>
+
+      <div *ngIf="!loading && transactions.length === 0" class="empty-state">
+        <span class="empty-icon"><i class="bi bi-broadcast-pin"></i></span>
+        <h5>No Transactions Yet</h5>
+        <p>Place an order or add a product to generate your first on-chain transaction.</p>
+      </div>
+
+      <div class="table-responsive" *ngIf="!loading && transactions.length > 0">
+        <table class="dmart-table mb-0">
+          <thead>
+            <tr>
+              <th>TX HASH</th>
+              <th>TYPE</th>
+              <th>EVENT</th>
+              <th>STATUS</th>
+              <th>BLOCK</th>
+              <th>GAS USED</th>
+              <th>SUBMITTED</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let tx of transactions">
+              <td>
+                <code class="font-monospace small"
+                      [ngClass]="tx.status === 'FAILED' ? 'text-danger' : 'text-primary'"
+                      [title]="tx.txHash || ''">
+                  {{ tx.txHash
+                      ? (tx.txHash.substring(0, 10) + '...' + tx.txHash.substring(tx.txHash.length - 6))
+                      : (tx.status === 'FAILED' ? '(failed)' : '(pending)') }}
+                </code>
+              </td>
+              <td>
+                <span class="chip" [ngClass]="tx.entityType === 'ORDER' ? 'chip-info' : 'chip-chain'">
+                  {{ tx.entityType }} #{{ tx.entityId }}
+                </span>
+              </td>
+              <td class="small fw-semibold text-dark">{{ tx.eventType }}</td>
+              <td>
+                <span class="chip"
+                      [ngClass]="{
+                        'chip-verified':  tx.status === 'CONFIRMED',
+                        'chip-pending':   tx.status === 'PENDING',
+                        'chip-tampered':  tx.status === 'FAILED'
+                      }">
+                  {{ tx.status }}
+                </span>
+              </td>
+              <td class="small font-monospace text-muted">{{ tx.blockNumber || '-' }}</td>
+              <td class="small font-monospace text-muted">{{ tx.gasUsed || '-' }}</td>
+              <td class="small text-muted">{{ tx.submittedAt | date:'short' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>

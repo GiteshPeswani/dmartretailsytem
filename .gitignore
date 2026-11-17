@@ -1,0 +1,104 @@
+# ==========================================
+# Academic & Presentation Documents (Excluded from GitHub)
+# ==========================================
+*Cookbook*
+*cookbook*
+*Report*
+*report*
+*ppt*
+*pptx*
+*presentation*
+*Demonstration_Guide*
+*demonstration*
+*.pdf
+*.pptx
+*.ppt
+*.docx
+*.doc
+*.xlsx
+*.xls
+generate_demonstration_pdf.py
+
+# ==========================================
+# Environment & Local Secrets
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.env
+!*.example
+
+# ==========================================
+# Operating System & Editor Files
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.log
+
+# IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/
+*.sublime-workspace
+*.sublime-project
+
+# ==========================================
+# Node.js Dependencies & Cache
+# ==========================================
+node_modules/
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==========================================
+# Frontend (Angular 20)
+# ==========================================
+dist/
+**/dist/
+.angular/
+**/.angular/
+coverage/
+**/coverage/
+.sass-cache/
+
+# ==========================================
+# Backend (Java / Spring Boot / Gradle)
+# ==========================================
+.gradle/
+**/.gradle/
+build/
+**/build/
+bin/
+**/bin/
+out/
+**/out/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# ==========================================
+# Blockchain (Hardhat / Solidity)
+# ==========================================
+artifacts/
+**/artifacts/
+cache/
+**/cache/
+typechain/
+**/typechain/
+typechain-types/
+**/typechain-types/

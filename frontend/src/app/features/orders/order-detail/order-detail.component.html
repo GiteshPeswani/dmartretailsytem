@@ -1,0 +1,531 @@
+<!-- ===== LOADING STATE ===== -->
+<div class="container py-5" *ngIf="loading">
+  <div class="text-center py-5">
+    <div class="spinner-border text-primary" style="width:3rem;height:3rem;"></div>
+    <p class="text-muted mt-3 fw-semibold">Loading your order…</p>
+  </div>
+</div>
+
+<!-- ===== MAIN ORDER DETAIL ===== -->
+<div class="od-page py-4" *ngIf="!loading && order">
+  <div class="container">
+
+    <!-- ══════════════════════════════════════════
+         HERO HEADER BANNER
+    ══════════════════════════════════════════ -->
+    <div class="od-hero mb-4">
+      <!-- Breadcrumb -->
+      <div class="od-breadcrumb">
+        <a routerLink="/orders">My Orders</a>
+        <span style="margin:0 8px;opacity:0.5;">›</span>
+        <span>{{ order.orderNumber }}</span>
+      </div>
+
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+          <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+            <span class="od-order-num">Order {{ order.orderNumber }}</span>
+
+            <span class="od-chip-verified"
+                  *ngIf="verificationResult?.status === 'VERIFIED' || order.blockchainStatus === 'CONFIRMED'">
+              <i class="bi bi-patch-check-fill"></i> Authentic &amp; Blockchain Protected
+            </span>
+            <span class="od-chip-tampered" *ngIf="verificationResult?.status === 'TAMPERED'">
+              <i class="bi bi-exclamation-triangle-fill"></i> Security Alert
+            </span>
+          </div>
+          <div class="od-order-date">
+            Placed on {{ order.createdAt | date:'mediumDate' }} at {{ order.createdAt | date:'shortTime' }}
+          </div>
+        </div>
+
+        <!-- Status Pill -->
+        <span class="od-status-pill"
+              [class.s-PENDING]="order.status === 'PENDING'"
+              [class.s-CONFIRMED]="order.status === 'CONFIRMED'"
+              [class.s-PROCESSING]="order.status === 'PROCESSING'"
+              [class.s-SHIPPED]="order.status === 'SHIPPED'"
+              [class.s-DELIVERED]="order.status === 'DELIVERED'"
+              [class.s-CANCELLED]="order.status === 'CANCELLED'">
+          <i class="bi"
+             [class.bi-clock]="order.status === 'PENDING'"
+             [class.bi-check-circle]="order.status === 'CONFIRMED'"
+             [class.bi-gear-fill]="order.status === 'PROCESSING'"
+             [class.bi-truck]="order.status === 'SHIPPED'"
+             [class.bi-bag-check-fill]="order.status === 'DELIVERED'"
+             [class.bi-x-circle]="order.status === 'CANCELLED'"></i>
+          {{ order.status }}
+        </span>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         ORDER FULFILLMENT STEPPER
+    ══════════════════════════════════════════ -->
+    <div class="od-card" *ngIf="order.status !== 'CANCELLED'">
+      <div class="od-card-head">
+        <div class="od-card-head-icon" style="background:#ede7f6;">
+          <i class="bi bi-truck" style="color:#6a1b9a;"></i>
+        </div>
+        <div>
+          <div class="od-card-head-title">Order Fulfillment Tracking</div>
+          <div class="od-card-head-sub">Your real-time delivery progress</div>
+        </div>
+      </div>
+      <div class="od-card-body" style="padding-top:24px;padding-bottom:16px;">
+        <div class="od-stepper">
+          <!-- connector line -->
+          <div class="od-stepper-line">
+            <div class="od-stepper-fill"
+                 [style.width.%]="(statusSteps.indexOf(order.status) / (statusSteps.length - 1)) * 100">
+            </div>
+          </div>
+
+          <!-- STEP 1 -->
+          <div class="od-step">
+            <div class="od-step-dot"
+                 [class.done]="isStepCompleted('PENDING')"
+                 [class.active]="order.status === 'PENDING'">
+              <i class="bi bi-check2" *ngIf="isStepCompleted('CONFIRMED')"></i>
+              <i class="bi bi-receipt" *ngIf="!isStepCompleted('CONFIRMED')"></i>
+            </div>
+            <div class="od-step-label"
+                 [class.done]="isStepCompleted('PENDING')"
+                 [class.active]="order.status === 'PENDING'">
+              Order<br>Placed
+            </div>
+          </div>
+
+          <!-- STEP 2 -->
+          <div class="od-step">
+            <div class="od-step-dot"
+                 [class.done]="isStepCompleted('CONFIRMED')"
+                 [class.active]="order.status === 'CONFIRMED'">
+              <i class="bi bi-check2" *ngIf="isStepCompleted('PROCESSING')"></i>
+              <i class="bi bi-check-circle" *ngIf="!isStepCompleted('PROCESSING')"></i>
+            </div>
+            <div class="od-step-label"
+                 [class.done]="isStepCompleted('CONFIRMED')"
+                 [class.active]="order.status === 'CONFIRMED'">
+              Confirmed
+            </div>
+          </div>
+
+          <!-- STEP 3 -->
+          <div class="od-step">
+            <div class="od-step-dot"
+                 [class.done]="isStepCompleted('PROCESSING')"
+                 [class.active]="order.status === 'PROCESSING'">
+              <i class="bi bi-check2" *ngIf="isStepCompleted('SHIPPED')"></i>
+              <i class="bi bi-box-seam" *ngIf="!isStepCompleted('SHIPPED')"></i>
+            </div>
+            <div class="od-step-label"
+                 [class.done]="isStepCompleted('PROCESSING')"
+                 [class.active]="order.status === 'PROCESSING'">
+              Processing
+            </div>
+          </div>
+
+          <!-- STEP 4 -->
+          <div class="od-step">
+            <div class="od-step-dot"
+                 [class.done]="isStepCompleted('SHIPPED')"
+                 [class.active]="order.status === 'SHIPPED'">
+              <i class="bi bi-check2" *ngIf="isStepCompleted('DELIVERED')"></i>
+              <i class="bi bi-truck" *ngIf="!isStepCompleted('DELIVERED')"></i>
+            </div>
+            <div class="od-step-label"
+                 [class.done]="isStepCompleted('SHIPPED')"
+                 [class.active]="order.status === 'SHIPPED'">
+              Shipped
+            </div>
+          </div>
+
+          <!-- STEP 5 -->
+          <div class="od-step">
+            <div class="od-step-dot"
+                 [class.done]="isStepCompleted('DELIVERED')"
+                 [class.active]="order.status === 'DELIVERED'">
+              <i class="bi bi-house-check"></i>
+            </div>
+            <div class="od-step-label"
+                 [class.done]="isStepCompleted('DELIVERED')"
+                 [class.active]="order.status === 'DELIVERED'">
+              Delivered
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /stepper card -->
+
+    <!-- ══════════════════════════════════════════
+         TWO-COLUMN LAYOUT
+    ══════════════════════════════════════════ -->
+    <div class="row g-4 mt-0">
+
+      <!-- ─── LEFT: Items + Address ─── -->
+      <div class="col-lg-8">
+
+        <!-- ITEMS IN ORDER -->
+        <div class="od-card">
+          <div class="od-card-head">
+            <div class="od-card-head-icon" style="background:#e3f2fd;">
+              <i class="bi bi-box-seam" style="color:#004b87;"></i>
+            </div>
+            <div class="od-card-head-title">Items in this Order</div>
+          </div>
+
+          <table class="od-items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Unit Price</th>
+                <th>Qty</th>
+                <th style="text-align:right;">Line Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of order.items">
+                <td>
+                  <div class="od-prod-name">{{ item.productName }}</div>
+                  <div class="od-prod-sku">SKU: {{ item.productSku }}</div>
+                </td>
+                <td style="color:#64748b;font-size:0.875rem;">₹{{ item.unitPrice }}</td>
+                <td><span class="od-qty-badge">{{ item.quantity }}</span></td>
+                <td style="text-align:right;font-weight:800;color:#1e293b;font-size:0.9rem;">₹{{ item.lineTotal }}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Price summary -->
+          <div style="padding:16px 20px 20px;border-top:1px solid #f1f5f9;">
+            <div style="max-width:300px;margin-left:auto;">
+              <div class="od-price-row">
+                <span>Subtotal</span><span>₹{{ order.subtotal }}</span>
+              </div>
+              <div class="od-price-row discount" *ngIf="order.discountAmount > 0">
+                <span><i class="bi bi-tag-fill me-1"></i>Savings</span>
+                <span style="font-weight:700;">− ₹{{ order.discountAmount }}</span>
+              </div>
+              <div class="od-price-row">
+                <span>Delivery</span>
+                <span style="color:#00873d;font-weight:700;">FREE</span>
+              </div>
+              <div class="od-price-row total">
+                <span>Total Paid</span>
+                <span style="color:#004b87;">₹{{ order.totalAmount }}</span>
+              </div>
+            </div>
+          </div>
+        </div><!-- /items card -->
+
+        <!-- DELIVERY ADDRESS -->
+        <div class="od-card">
+          <div class="od-card-head">
+            <div class="od-card-head-icon" style="background:#fce4ec;">
+              <i class="bi bi-geo-alt-fill" style="color:#c62828;"></i>
+            </div>
+            <div class="od-card-head-title">Delivery Address</div>
+          </div>
+          <div class="od-card-body">
+            <div class="od-address-box">
+              <i class="bi bi-house-door me-2 text-muted"></i>{{ order.deliveryAddress }}
+            </div>
+            <div class="mt-2 small text-muted" *ngIf="order.notes">
+              <i class="bi bi-info-circle me-1"></i>
+              <strong>Delivery Note:</strong> {{ order.notes }}
+            </div>
+          </div>
+        </div><!-- /address card -->
+
+      </div><!-- /col-lg-8 -->
+
+      <!-- ─── RIGHT: Summary + Trust ─── -->
+      <div class="col-lg-4">
+
+        <!-- ORDER SUMMARY -->
+        <div class="od-card">
+          <div class="od-card-head">
+            <div class="od-card-head-icon" style="background:#e8f5e9;">
+              <i class="bi bi-receipt-cutoff" style="color:#2e7d32;"></i>
+            </div>
+            <div class="od-card-head-title">Order Summary</div>
+          </div>
+          <div class="od-card-body" style="padding-top:8px;padding-bottom:8px;">
+            <div class="od-summary-row">
+              <span class="od-summary-label">Status</span>
+              <span class="od-summary-val">{{ order.status }}</span>
+            </div>
+            <div class="od-summary-row">
+              <span class="od-summary-label">Items</span>
+              <span class="od-summary-val">{{ order.items.length }}</span>
+            </div>
+            <div class="od-summary-row">
+              <span class="od-summary-label">Delivery</span>
+              <span class="od-summary-val">2–3 Business Days</span>
+            </div>
+            <div class="od-summary-row">
+              <span class="od-summary-label">Payment</span>
+              <span class="od-summary-val">Cash on Delivery</span>
+            </div>
+            <div class="od-summary-row" style="border-top:2px solid #e8edf3;border-bottom:none;margin-top:4px;padding-top:14px;">
+              <span class="od-summary-label fw-bold" style="color:#1e293b;font-size:0.95rem;">Total Paid</span>
+              <span class="od-summary-val" style="font-size:1.1rem;color:#004b87;">₹{{ order.totalAmount }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRUST / BLOCKCHAIN GUARANTEE -->
+        <div class="od-trust-card">
+          <div class="d-flex gap-3 align-items-start mb-3">
+            <div class="od-trust-icon">
+              <i class="bi bi-shield-fill-check"></i>
+            </div>
+            <div>
+              <div class="od-trust-title">D-Mart Genuine Purchase</div>
+              <div class="od-trust-sub">
+                Your order is sealed with an immutable cryptographic record — pricing &amp; authenticity cannot be altered.
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 flex-wrap mb-1">
+            <span class="od-trust-chip"><i class="bi bi-patch-check me-1"></i>Blockchain Verified</span>
+            <span class="od-trust-chip"><i class="bi bi-lock-fill me-1"></i>Tamper-Proof</span>
+          </div>
+
+          <!-- Live verification status (auto-runs on load, no tech details shown to user) -->
+          <div class="od-inline-verify" *ngIf="verifying">
+            <span class="spinner-border spinner-border-sm text-success me-2"></span>
+            <span class="small text-muted">Verifying on blockchain…</span>
+          </div>
+          <div class="od-inline-verify verified"
+               *ngIf="!verifying && (verificationResult?.status === 'VERIFIED' || (!verificationResult && order.blockchainStatus === 'CONFIRMED'))">
+            <i class="bi bi-patch-check-fill me-2" style="color:#16A34A;"></i>
+            <span class="small fw-semibold" style="color:#16A34A;">Order integrity verified on-chain</span>
+          </div>
+          <div class="od-inline-verify tampered"
+               *ngIf="!verifying && verificationResult?.status === 'TAMPERED'">
+            <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>
+            <span class="small fw-semibold text-danger">Security alert — hash mismatch detected</span>
+          </div>
+
+          <!-- Subtle examiner-only link (hidden in plain sight) -->
+          <div class="mt-3 text-end">
+            <span class="od-viva-link" (click)="toggleTechnicalProof()" role="button">
+              <i class="bi bi-cpu me-1"></i>{{ showTechnicalProof ? 'Close technical panel' : 'Technical audit (examiner)' }}
+            </span>
+          </div>
+        </div>
+
+      </div><!-- /col-lg-4 -->
+    </div><!-- /row -->
+
+
+    <!-- ══════════════════════════════════════════
+         COLLAPSIBLE VIVA / EXAMINER PANEL
+         (default: hidden — opened via toggle button)
+    ══════════════════════════════════════════ -->
+    <div class="od-viva-panel" *ngIf="showTechnicalProof">
+
+      <!-- Panel header -->
+      <div class="od-viva-header">
+        <div class="d-flex align-items-center">
+          <span class="od-viva-badge">VIVA / EXAMINER MODE</span>
+          <span style="color:#fff;font-weight:600;font-size:0.93rem;">
+            Blockchain Smart Contract Technical Audit &amp; Simulation Tools
+          </span>
+        </div>
+        <button style="background:rgba(255,255,255,0.15);color:#fff;border:none;border-radius:8px;padding:5px 14px;font-size:0.82rem;font-weight:600;cursor:pointer;" (click)="toggleTechnicalProof()">
+          <i class="bi bi-x-lg me-1"></i>Close
+        </button>
+      </div>
+
+      <div class="od-viva-body">
+
+        <!-- ── FEATURE 1: BLOCKCHAIN VERIFICATION ── -->
+        <div class="mb-4 pb-4" style="border-bottom:1px solid #e8edf3;">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+            <div>
+              <div style="font-size:0.95rem;font-weight:800;color:#004b87;">
+                <i class="bi bi-cpu me-2"></i>Feature 1 — Blockchain Order Verification
+              </div>
+              <div class="text-muted small mt-1">
+                Independent Keccak-256 hash comparison between MySQL database record and Ethereum Smart Contract.
+              </div>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" [disabled]="verifying" (click)="verifyOnChain()">
+              <span *ngIf="verifying" class="spinner-border spinner-border-sm me-1"></span>
+              <i *ngIf="!verifying" class="bi bi-arrow-repeat me-1"></i>Re-Verify Now
+            </button>
+          </div>
+
+          <div class="row g-3">
+            <!-- Status box -->
+            <div class="col-md-4">
+              <div class="od-verify-box"
+                   [class.verified]="verificationResult?.status === 'VERIFIED' || (!verificationResult && order.blockchainStatus === 'CONFIRMED')"
+                   [class.tampered]="verificationResult?.status === 'TAMPERED'"
+                   [class.unknown]="!verificationResult && order.blockchainStatus !== 'CONFIRMED'">
+                <div class="od-verify-label">Verification Status</div>
+                <div class="od-verify-text">
+                  <ng-container *ngIf="verificationResult?.status === 'TAMPERED'">TAMPERED</ng-container>
+                  <ng-container *ngIf="verificationResult?.status === 'VERIFIED' || (!verificationResult && order.blockchainStatus === 'CONFIRMED')">VERIFIED</ng-container>
+                  <ng-container *ngIf="!verificationResult && order.blockchainStatus !== 'CONFIRMED'">UNKNOWN</ng-container>
+                </div>
+                <div class="od-verify-sub">
+                  <ng-container *ngIf="verificationResult?.status === 'TAMPERED'">{{ verificationResult?.message || 'Hash mismatch detected' }}</ng-container>
+                  <ng-container *ngIf="verificationResult?.status === 'VERIFIED'">Record integrity confirmed on-chain</ng-container>
+                  <ng-container *ngIf="!verificationResult && order.blockchainStatus === 'CONFIRMED'">On-chain record present</ng-container>
+                  <ng-container *ngIf="!verificationResult && order.blockchainStatus !== 'CONFIRMED'">Awaiting verification</ng-container>
+                </div>
+              </div>
+            </div>
+
+            <!-- Blockchain metadata -->
+            <div class="col-md-8">
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;">
+                <div class="row g-3">
+                  <div class="col-sm-6">
+                    <div class="text-muted small fw-semibold mb-1">Block Number</div>
+                    <div style="font-weight:800;font-family:'Courier New',monospace;font-size:0.9rem;color:#1e293b;">
+                      {{ verificationResult?.blockNumber ? '#' + verificationResult?.blockNumber : '—' }}
+                    </div>
+                  </div>
+                  <div class="col-sm-6">
+                    <div class="text-muted small fw-semibold mb-1">Transaction Hash</div>
+                    <div style="font-family:'Courier New',monospace;font-size:0.72rem;color:#004b87;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                         [title]="verificationResult?.txHash || order.blockchainTxHash || ''">
+                      {{ verificationResult?.txHash || order.blockchainTxHash || 'Awaiting block inclusion' }}
+                    </div>
+                  </div>
+                  <div class="col-12">
+                    <div class="text-muted small fw-semibold mb-1">Original Blockchain Keccak-256 Hash</div>
+                    <div class="od-hash">{{ verificationResult?.onChainHash || '—' }}</div>
+                  </div>
+                  <div class="col-12">
+                    <div class="text-muted small fw-semibold mb-1">Current MySQL Recomputed Hash</div>
+                    <div class="od-hash"
+                         [class.match]="verificationResult?.status === 'VERIFIED'"
+                         [class.tamper]="verificationResult?.status === 'TAMPERED'">
+                      {{ verificationResult?.localHash || order.orderHash || '—' }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TAMPERING SIMULATION ── -->
+        <div class="od-tamper-box mb-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <div style="font-weight:800;color:#e65100;font-size:0.9rem;margin-bottom:4px;">
+                <span style="background:#ff9800;color:#fff;border-radius:5px;padding:2px 9px;font-size:0.68rem;font-weight:800;margin-right:8px;vertical-align:middle;">INTERVIEW / VIVA</span>
+                Controlled Data Tampering Simulation
+              </div>
+              <div class="text-muted small">
+                Modifies the order total directly in MySQL to demonstrate live cryptographic tamper-detection.
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-danger btn-sm" [disabled]="tampering" (click)="simulateTamper()">
+                <span *ngIf="tampering" class="spinner-border spinner-border-sm me-1"></span>
+                <i *ngIf="!tampering" class="bi bi-shield-slash me-1"></i>
+                Simulate Tamper (₹1.00)
+              </button>
+              <button class="btn btn-outline-success btn-sm" [disabled]="tampering" (click)="restoreTamper()">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Restore Original
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── VERIFY ANY ORDER LOOKUP ── -->
+        <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:16px;" class="mb-4">
+          <div style="font-weight:700;font-size:0.85rem;color:#1e293b;margin-bottom:10px;">
+            <i class="bi bi-search me-1 text-primary"></i>Verify Any Order ID
+          </div>
+          <div class="d-flex gap-2">
+            <input type="text" class="form-control form-control-sm"
+                   style="font-family:'Courier New',monospace;border-radius:8px;"
+                   placeholder="Enter Order ID or Number (e.g. 1)"
+                   [(ngModel)]="lookupInput" (keyup.enter)="lookupOrderByInput()">
+            <button class="btn btn-primary btn-sm px-3" style="border-radius:8px;"
+                    [disabled]="lookupLoading || !lookupInput" (click)="lookupOrderByInput()">
+              <span *ngIf="lookupLoading" class="spinner-border spinner-border-sm"></span>
+              <i *ngIf="!lookupLoading" class="bi bi-search"></i>
+            </button>
+          </div>
+          <div class="mt-2" *ngIf="lookupResult">
+            <div class="alert py-2 px-3 mb-0 small rounded-3"
+                 [class.alert-success]="lookupResult.status === 'VERIFIED'"
+                 [class.alert-danger]="lookupResult.status !== 'VERIFIED'">
+              <strong>Order {{ lookupResult.entityId }}:</strong>
+              {{ lookupResult.status }} — {{ lookupResult.message }}
+              <span *ngIf="lookupResult.blockNumber"> (Block #{{ lookupResult.blockNumber }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── FEATURE 2: IMMUTABLE AUDIT TIMELINE ── -->
+        <div>
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+            <div>
+              <div style="font-size:0.95rem;font-weight:800;color:#004b87;">
+                <i class="bi bi-clock-history me-2"></i>Feature 2 — Immutable Order Lifecycle History
+              </div>
+              <div class="text-muted small mt-1">
+                Permanent on-chain event log — ORDER_CREATED, ORDER_CONFIRMED, ORDER_SHIPPED, ORDER_DELIVERED.
+                <span class="ms-1 text-primary fw-bold"><i class="bi bi-lock-fill"></i> Zero PII on-chain (GDPR compliant)</span>
+              </div>
+            </div>
+            <span style="background:#e3f2fd;border:1px solid #90caf9;border-radius:50px;padding:5px 14px;font-size:0.73rem;font-weight:700;color:#004b87;white-space:nowrap;">
+              <i class="bi bi-shield-check me-1"></i>{{ auditTrail.length }} Events Recorded
+            </span>
+          </div>
+
+          <!-- Timeline list -->
+          <ul class="od-timeline" *ngIf="auditTrail.length > 0">
+            <li class="od-tl-item" *ngFor="let ev of auditTrail">
+              <div class="od-tl-dot"
+                   [style.background]="ev.eventType === 'ORDER_CREATED' ? '#e3f2fd' : ev.eventType === 'ORDER_CONFIRMED' ? '#e8f5e9' : ev.eventType === 'ORDER_SHIPPED' ? '#fff8e1' : '#f3e5f5'"
+                   [style.color]="ev.eventType === 'ORDER_CREATED' ? '#004b87' : ev.eventType === 'ORDER_CONFIRMED' ? '#2e7d32' : ev.eventType === 'ORDER_SHIPPED' ? '#e65100' : '#6a1b9a'">
+                <i class="bi"
+                   [class.bi-plus-circle-fill]="ev.eventType === 'ORDER_CREATED'"
+                   [class.bi-check-circle-fill]="ev.eventType === 'ORDER_CONFIRMED'"
+                   [class.bi-truck]="ev.eventType === 'ORDER_SHIPPED'"
+                   [class.bi-house-check-fill]="ev.eventType === 'ORDER_DELIVERED'"></i>
+              </div>
+              <div class="od-tl-content">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div class="od-tl-event">{{ ev.eventType }}</div>
+                  <div class="od-tl-meta">{{ ev.createdAt | date:'mediumDate' }} {{ ev.createdAt | date:'shortTime' }}</div>
+                </div>
+                <div class="od-tl-meta">
+                  Actor: <strong>{{ ev.actorRole || 'SYSTEM' }}</strong>
+                  <span *ngIf="ev.actorName"> ({{ ev.actorName }})</span>
+                </div>
+                <div class="od-tl-hash" *ngIf="ev.txHash">
+                  <span style="color:#94a3b8;font-size:0.65rem;">TX: </span>{{ ev.txHash }}
+                </div>
+                <div class="od-tl-hash" *ngIf="ev.description" style="margin-top:4px;">
+                  <span style="color:#94a3b8;font-size:0.65rem;">HASH: </span>{{ ev.description }}
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <div *ngIf="auditTrail.length === 0"
+               style="text-align:center;padding:28px;background:#f8fafc;border-radius:12px;color:#94a3b8;font-size:0.875rem;">
+            <i class="bi bi-clock-history d-block mb-2" style="font-size:1.6rem;"></i>
+            No on-chain events recorded yet. Events appear as the order progresses.
+          </div>
+        </div>
+
+      </div><!-- /od-viva-body -->
+    </div><!-- /od-viva-panel -->
+
+  </div><!-- /container -->
+</div><!-- /od-page -->

@@ -1,0 +1,10 @@
+.product-img-wrapper {
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.list-group-item.active {
+  background-color: var(--dmart-blue);
+  border-color: var(--dmart-blue);
+}

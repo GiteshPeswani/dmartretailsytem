@@ -1,0 +1,82 @@
+/* Centered Register Card Styles */
+.auth-page-wrap {
+  background-color: #f7f8fa;
+  min-height: calc(100vh - 140px);
+  display: flex;
+  align-items: center;
+}
+
+.auth-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  padding: 32px 28px;
+}
+
+@media (min-width: 576px) {
+  .auth-card {
+    padding: 36px 32px;
+  }
+}
+
+.auth-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #e8f5ee;
+  color: #007a3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.auth-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.auth-subtitle {
+  font-size: 0.82rem;
+}
+
+.text-green {
+  color: #007a3d !important;
+}
+
+.text-green:hover {
+  color: #006331 !important;
+  text-decoration: underline !important;
+}
+
+.text-indigo {
+  color: #4f46e5 !important;
+}
+
+.btn-auth-submit {
+  background-color: #007a3d;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.95rem;
+  transition: background-color 0.15s ease;
+}
+
+.btn-auth-submit:hover {
+  background-color: #006331;
+  color: #ffffff;
+}
+
+.btn-auth-submit:disabled {
+  background-color: #94a3b8;
+  color: #ffffff;
+}
+
+.form-control:focus {
+  border-color: #007a3d;
+  box-shadow: 0 0 0 3px rgba(0, 122, 61, 0.15);
+}

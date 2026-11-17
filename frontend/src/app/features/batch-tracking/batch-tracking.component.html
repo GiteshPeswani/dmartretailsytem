@@ -1,0 +1,206 @@
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <div class="d-flex align-items-center gap-2 mb-1">
+        <h3 class="fw-bold text-dark mb-0">
+          <i class="bi bi-qr-code text-primary me-2"></i> Product Batch Provenance &amp; Tracking
+        </h3>
+      </div>
+      <p class="text-muted small mb-0">
+        Verify authentic farm-to-shelf journey recorded immutably on the Ethereum smart contract.
+      </p>
+    </div>
+    <div>
+      <a routerLink="/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i> Back to Store</a>
+    </div>
+  </div>
+
+  <!-- Search & Quick Selection Card -->
+  <div class="dmart-card p-4 mb-4">
+    <div class="row align-items-center g-3">
+      <div class="col-lg-6">
+        <label class="form-label small fw-bold text-dark mb-1">Enter Batch Number or Scan Batch QR Code</label>
+        <div class="input-group">
+          <span class="input-group-text bg-white"><i class="bi bi-search text-muted"></i></span>
+          <input type="text" class="form-control font-monospace" 
+                 placeholder="e.g. BATCH-2026-MILK-01" 
+                 [(ngModel)]="searchQuery" (keyup.enter)="trackBatch()">
+          <button class="btn btn-dmart px-4" [disabled]="loading || !searchQuery" (click)="trackBatch()">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm me-1"></span>
+            Track Batch
+          </button>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <label class="form-label small text-muted mb-1">Demo Quick-Pick Sample Batches:</label>
+        <div class="d-flex flex-wrap gap-2">
+          <button *ngFor="let b of allBatches" class="btn btn-sm btn-outline-secondary font-monospace" 
+                  [class.active]="searchQuery === b.batchNumber"
+                  (click)="selectSample(b.batchNumber)">
+            {{ b.batchNumber }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Batch Details & QR Code Section -->
+  <div *ngIf="batch" class="row g-4 mb-4">
+    <!-- Left: Batch Info & Supply Chain Journey -->
+    <div class="col-lg-8">
+      <!-- Main Batch Card -->
+      <div class="dmart-card p-4 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3 pb-3 border-bottom">
+          <div>
+            <span class="badge bg-secondary font-monospace mb-1">{{ batch.batchNumber }}</span>
+            <h4 class="fw-bold text-dark mb-0">{{ batch.productName }}</h4>
+            <small class="text-muted font-monospace">SKU: {{ batch.productSku }} | Units in Batch: {{ batch.quantity }}</small>
+          </div>
+          <div>
+            <span class="chip fs-6 px-3 py-2" [ngClass]="{
+              'chip-info': batch.currentStage === 'MANUFACTURED',
+              'chip-pending': batch.currentStage === 'WAREHOUSE_ARRIVED',
+              'chip-verified': batch.currentStage === 'STORE_ARRIVED'
+            }">
+              <i class="bi bi-geo-alt-fill me-1"></i> Current Stage: {{ batch.currentStage }}
+            </span>
+          </div>
+        </div>
+
+        <!-- 3-Stage Provenance Timeline -->
+        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-signpost-split text-primary me-2"></i> Cryptographic Supply Chain Timeline</h6>
+        <div class="position-relative p-2 mb-4">
+          <div class="row text-center g-3">
+            <!-- Stage 1: Manufactured -->
+            <div class="col-md-4">
+              <div class="p-3 rounded-3 border h-100" [ngClass]="{
+                'border-success bg-success-subtle': true
+              }">
+                <div class="rounded-circle bg-white text-success d-inline-flex p-2 mb-2 shadow-sm">
+                  <i class="bi bi-buildings fs-4"></i>
+                </div>
+                <div class="fw-bold text-dark small">1. Manufactured</div>
+                <div class="text-muted small mt-1">{{ batch.manufacturerName }}</div>
+                <div class="text-muted small">Mfg: {{ batch.manufactureDate }}</div>
+                <span class="chip chip-verified mt-2 small">
+                  <i class="bi bi-check-circle"></i> Origin Signed
+                </span>
+              </div>
+            </div>
+
+            <!-- Stage 2: Warehouse Arrival -->
+            <div class="col-md-4">
+              <div class="p-3 rounded-3 border h-100" [ngClass]="{
+                'border-success bg-success-subtle': batch.currentStage === 'WAREHOUSE_ARRIVED' || batch.currentStage === 'STORE_ARRIVED',
+                'border-secondary-subtle bg-light text-muted': batch.currentStage === 'MANUFACTURED'
+              }">
+                <div class="rounded-circle bg-white d-inline-flex p-2 mb-2 shadow-sm" [ngClass]="{
+                  'text-success': batch.currentStage === 'WAREHOUSE_ARRIVED' || batch.currentStage === 'STORE_ARRIVED',
+                  'text-muted': batch.currentStage === 'MANUFACTURED'
+                }">
+                  <i class="bi bi-truck fs-4"></i>
+                </div>
+                <div class="fw-bold text-dark small">2. Warehouse Arrival</div>
+                <div class="small mt-1" [ngClass]="batch.warehouseLocation ? 'text-dark' : 'text-muted'">
+                  {{ batch.warehouseLocation || 'Awaiting warehouse scan' }}
+                </div>
+                <span *ngIf="batch.currentStage === 'WAREHOUSE_ARRIVED' || batch.currentStage === 'STORE_ARRIVED'" 
+                      class="chip chip-verified mt-2 small">
+                  <i class="bi bi-check-circle"></i> Warehouse Verified
+                </span>
+                <span *ngIf="batch.currentStage === 'MANUFACTURED'" class="chip chip-muted mt-2 small">
+                  In Transit
+                </span>
+              </div>
+            </div>
+
+            <!-- Stage 3: Store Shelf Arrival -->
+            <div class="col-md-4">
+              <div class="p-3 rounded-3 border h-100" [ngClass]="{
+                'border-success bg-success-subtle': batch.currentStage === 'STORE_ARRIVED',
+                'border-secondary-subtle bg-light text-muted': batch.currentStage !== 'STORE_ARRIVED'
+              }">
+                <div class="rounded-circle bg-white d-inline-flex p-2 mb-2 shadow-sm" [ngClass]="{
+                  'text-success': batch.currentStage === 'STORE_ARRIVED',
+                  'text-muted': batch.currentStage !== 'STORE_ARRIVED'
+                }">
+                  <i class="bi bi-shop fs-4"></i>
+                </div>
+                <div class="fw-bold text-dark small">3. Store Shelf Arrival</div>
+                <div class="small mt-1" [ngClass]="batch.storeLocation ? 'text-dark' : 'text-muted'">
+                  {{ batch.storeLocation || 'Awaiting store receipt' }}
+                </div>
+                <span *ngIf="batch.currentStage === 'STORE_ARRIVED'" class="chip chip-verified mt-2 small">
+                  <i class="bi bi-check-circle"></i> On Retail Shelf
+                </span>
+                <span *ngIf="batch.currentStage !== 'STORE_ARRIVED'" class="chip chip-muted mt-2 small">
+                  Pending Arrival
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart Contract Integrity Check -->
+        <div class="p-3 bg-light rounded-3 border small">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="fw-bold text-dark"><i class="bi bi-shield-check text-success me-1"></i> Blockchain Audit Proof</span>
+            <span class="chip" [ngClass]="{
+              'chip-verified': verificationResult?.verified,
+              'chip-pending': verifying
+            }">
+              {{ verifying ? 'Verifying on EVM...' : (verificationResult?.verified ? 'VERIFIED ON-CHAIN' : 'CONFIRMED') }}
+            </span>
+          </div>
+          <div class="row g-2">
+            <div class="col-12">
+              <span class="text-muted small">Batch State Hash:</span>
+              <div class="hash-display match">{{ batch.batchHash || '0x' }}</div>
+            </div>
+            <div class="col-12" *ngIf="batch.blockchainTxHash">
+              <span class="text-muted small">Transaction Hash:</span>
+              <div class="hash-display match text-primary">{{ batch.blockchainTxHash }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: QR Code & Verification Info -->
+    <div class="col-lg-4">
+      <!-- QR Code Card -->
+      <div class="dmart-card p-4 text-center mb-4">
+        <h6 class="fw-bold text-dark mb-2">Product Batch QR Code</h6>
+        <p class="text-muted small mb-3">Scan this QR code with any mobile device to view this batch provenance</p>
+        
+        <div class="d-flex justify-content-center my-2">
+          <div class="p-3 bg-white rounded border shadow-sm d-inline-block">
+            <img [src]="getQrCodeUrl(batch)" [alt]="batch.batchNumber" 
+                 width="190" height="190" class="img-fluid rounded">
+          </div>
+        </div>
+
+        <div class="mt-2">
+          <code class="font-monospace fw-bold text-dark d-block mb-1">{{ batch.batchNumber }}</code>
+          <small class="text-muted d-block">Batch ID: #{{ batch.id }} | Expiry: {{ batch.expiryDate || 'N/A' }}</small>
+        </div>
+
+        <div class="mt-3 pt-3 border-top">
+          <div class="d-flex align-items-center justify-content-center gap-2 text-success small fw-semibold">
+            <i class="bi bi-patch-check-fill fs-5"></i>
+            <span>D-Mart Authenticity Seal</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Summary Card -->
+      <div class="dmart-card p-4 bg-light">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-info-circle text-primary me-2"></i> Supply Chain Guarantee</h6>
+        <p class="small text-muted mb-0">
+          Every batch arrival transition is authorized and signed on the EVM smart contract, eliminating counterfeit inventory and ensuring fresh store deliveries.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

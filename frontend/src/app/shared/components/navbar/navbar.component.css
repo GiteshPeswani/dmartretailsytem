@@ -1,0 +1,19 @@
+/* Navbar styles */
+.dmart-navbar {
+  background-color: #007a3d !important;
+  min-height: 64px;
+}
+
+.tracking-tight {
+  letter-spacing: -0.5px;
+}
+
+.dropdown-menu.show {
+  display: block;
+  animation: dropdownFade 0.15s ease-in-out;
+}
+
+@keyframes dropdownFade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}

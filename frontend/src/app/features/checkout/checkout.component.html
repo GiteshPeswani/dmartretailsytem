@@ -1,0 +1,136 @@
+<div class="container py-4">
+  <!-- Stepper Indicator -->
+  <div class="mb-4">
+    <div class="dmart-stepper max-w-md mx-auto mb-3" style="max-width: 500px;">
+      <div class="dmart-stepper-line">
+        <div class="dmart-stepper-fill" style="width: 50%;"></div>
+      </div>
+      <div class="dmart-step">
+        <div class="step-dot done"><i class="bi bi-check-lg"></i></div>
+        <div class="step-lbl done">Cart</div>
+      </div>
+      <div class="dmart-step">
+        <div class="step-dot active">2</div>
+        <div class="step-lbl active">Address</div>
+      </div>
+      <div class="dmart-step">
+        <div class="step-dot">3</div>
+        <div class="step-lbl">Place Order</div>
+      </div>
+    </div>
+
+    <div class="text-center">
+      <h3 class="fw-bold text-dark mb-1"><i class="bi bi-credit-card-2-front text-primary me-2"></i> Secure Checkout</h3>
+      <p class="text-muted small mb-0">Provide your delivery location and confirm your blockchain-tracked order</p>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Delivery Address Form -->
+    <div class="col-lg-7">
+      <div class="dmart-card p-4 p-md-5 mb-4">
+        <h5 class="fw-bold text-dark mb-4"><i class="bi bi-geo-alt-fill text-danger me-2"></i> Delivery Address</h5>
+
+        <form [formGroup]="checkoutForm" (ngSubmit)="onSubmit()">
+          <div class="mb-3">
+            <label class="form-label fw-semibold small">Street Address / House No. / Landmark</label>
+            <input type="text" class="form-control" formControlName="street" placeholder="e.g. Flat 302, Green Valley Apts, MG Road"
+                   [ngClass]="{ 'is-invalid': checkoutForm.get('street')?.touched && checkoutForm.get('street')?.invalid }">
+            <div class="invalid-feedback">Street address is required (min 5 characters).</div>
+          </div>
+
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold small">City</label>
+              <input type="text" class="form-control" formControlName="city" placeholder="e.g. Mumbai"
+                     [ngClass]="{ 'is-invalid': checkoutForm.get('city')?.touched && checkoutForm.get('city')?.invalid }">
+              <div class="invalid-feedback">City is required.</div>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">State</label>
+              <input type="text" class="form-control" formControlName="state" placeholder="e.g. Maharashtra"
+                     [ngClass]="{ 'is-invalid': checkoutForm.get('state')?.touched && checkoutForm.get('state')?.invalid }">
+              <div class="invalid-feedback">State is required.</div>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label fw-semibold small">Postal PIN</label>
+              <input type="text" class="form-control" formControlName="postalCode" placeholder="400001"
+                     [ngClass]="{ 'is-invalid': checkoutForm.get('postalCode')?.touched && checkoutForm.get('postalCode')?.invalid }">
+              <div class="invalid-feedback">Valid 6-digit PIN required.</div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label fw-semibold small">Delivery Instructions (Optional)</label>
+            <textarea class="form-control" formControlName="notes" rows="2" placeholder="e.g. Leave with security guard"></textarea>
+          </div>
+
+          <!-- Payment Mode -->
+          <div class="p-3 bg-light rounded-3 border mb-4">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-cash-coin text-success fs-4"></i>
+              <h6 class="fw-bold mb-0">Payment Mode: Cash On Delivery</h6>
+            </div>
+            <p class="small text-muted mb-0">
+              Pay conveniently with cash or UPI at your doorstep upon receiving your groceries.
+            </p>
+          </div>
+
+          <button type="submit" class="btn btn-dmart btn-lg w-100 py-3 fw-bold" [disabled]="submitting">
+            <span *ngIf="submitting" class="spinner-border spinner-border-sm me-2"></span>
+            <span *ngIf="!submitting"><i class="bi bi-bag-check-fill me-2"></i>Confirm &amp; Place Order</span>
+            <span *ngIf="submitting">Placing Order...</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Order Review Column -->
+    <div class="col-lg-5">
+      <div class="dmart-card p-4 sticky-top" style="top: 80px;">
+        <h5 class="fw-bold text-dark mb-3">Order Items ({{ cartService.itemCount() }})</h5>
+
+        <div class="overflow-auto mb-3" style="max-height: 280px;">
+          <div *ngFor="let item of cartService.cart()?.items" class="d-flex justify-content-between align-items-center py-2 border-bottom">
+            <div class="me-2">
+              <div class="fw-semibold small text-dark">{{ item.productName }}</div>
+              <small class="text-muted">{{ item.quantity }} &times; &#8377;{{ item.effectivePrice }}</small>
+            </div>
+            <span class="fw-bold text-dark small">&#8377;{{ item.lineTotal }}</span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2 small text-muted">
+          <span>Subtotal:</span>
+          <span>&#8377;{{ cartService.cart()?.subtotal }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between mb-2 small text-success fw-semibold" *ngIf="(cartService.cart()?.totalSavings ?? 0) > 0">
+          <span>D-Mart Discount Savings:</span>
+          <span>- &#8377;{{ cartService.cart()?.totalSavings }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between mb-3 small text-muted">
+          <span>Delivery Charge:</span>
+          <span class="text-success fw-bold">FREE</span>
+        </div>
+
+        <hr class="my-2">
+
+        <div class="d-flex justify-content-between align-items-center py-2">
+          <span class="fs-5 fw-bold text-dark">Payable Amount:</span>
+          <span class="fs-4 fw-bold text-success">&#8377;{{ cartService.cart()?.grandTotal }}</span>
+        </div>
+
+        <div class="mt-4 p-3 bg-light rounded-3 small border">
+          <div class="fw-bold text-success mb-1"><i class="bi bi-shield-check me-1"></i> Blockchain Protected Order</div>
+          <div class="text-muted" style="font-size: 0.75rem;">
+            Your order invoice and pricing are cryptographically sealed on-chain to guarantee zero billing tampering and 100% genuine products.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

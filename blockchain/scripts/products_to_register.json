@@ -1,0 +1,156 @@
+[
+  {
+    "id": 1,
+    "name": "Amul Milk 1 L",
+    "sku": "SKU-DAI-001",
+    "price": 68.0,
+    "stock": 99
+  },
+  {
+    "id": 2,
+    "name": "Amul Butter 500 g",
+    "sku": "SKU-DAI-002",
+    "price": 265.0,
+    "stock": 80
+  },
+  {
+    "id": 3,
+    "name": "Britannia Eggs 12 pcs",
+    "sku": "SKU-DAI-003",
+    "price": 96.0,
+    "stock": 60
+  },
+  {
+    "id": 4,
+    "name": "Kellogg Corn Flakes 500 g",
+    "sku": "SKU-DAI-004",
+    "price": 225.0,
+    "stock": 90
+  },
+  {
+    "id": 5,
+    "name": "Philips LED Bulb 9W",
+    "sku": "SKU-ELC-001",
+    "price": 85.0,
+    "stock": 150
+  },
+  {
+    "id": 6,
+    "name": "Syska Power Strip 4 Port",
+    "sku": "SKU-ELC-002",
+    "price": 399.0,
+    "stock": 75
+  },
+  {
+    "id": 7,
+    "name": "Basmati Rice 5 kg",
+    "sku": "SKU-GRC-001",
+    "price": 299.0,
+    "stock": 200
+  },
+  {
+    "id": 8,
+    "name": "Tata Salt 1 kg",
+    "sku": "SKU-GRC-002",
+    "price": 20.0,
+    "stock": 499
+  },
+  {
+    "id": 9,
+    "name": "Aashirvaad Atta 5 kg",
+    "sku": "SKU-GRC-003",
+    "price": 230.0,
+    "stock": 150
+  },
+  {
+    "id": 10,
+    "name": "Fortune Sunflower Oil 1 L",
+    "sku": "SKU-GRC-004",
+    "price": 145.0,
+    "stock": 300
+  },
+  {
+    "id": 11,
+    "name": "Toor Dal 1 kg",
+    "sku": "SKU-GRC-005",
+    "price": 120.0,
+    "stock": 250
+  },
+  {
+    "id": 12,
+    "name": "Vim Dishwash Liquid 500 ml",
+    "sku": "SKU-HOM-001",
+    "price": 89.0,
+    "stock": 250
+  },
+  {
+    "id": 13,
+    "name": "Lizol Disinfectant 500 ml",
+    "sku": "SKU-HOM-002",
+    "price": 145.0,
+    "stock": 179
+  },
+  {
+    "id": 14,
+    "name": "Dove Soap 3\u00d7100 g",
+    "sku": "SKU-PER-001",
+    "price": 145.0,
+    "stock": 200
+  },
+  {
+    "id": 15,
+    "name": "Head & Shoulders 400 ml",
+    "sku": "SKU-PER-002",
+    "price": 299.0,
+    "stock": 120
+  },
+  {
+    "id": 16,
+    "name": "Colgate MaxFresh 150 g",
+    "sku": "SKU-PER-003",
+    "price": 99.0,
+    "stock": 299
+  },
+  {
+    "id": 17,
+    "name": "Lay's Classic Salted",
+    "sku": "SKU-SNK-001",
+    "price": 20.0,
+    "stock": 400
+  },
+  {
+    "id": 18,
+    "name": "Parle-G Biscuits 800 g",
+    "sku": "SKU-SNK-002",
+    "price": 55.0,
+    "stock": 350
+  },
+  {
+    "id": 19,
+    "name": "Tropicana Orange 1 L",
+    "sku": "SKU-SNK-003",
+    "price": 99.0,
+    "stock": 180
+  },
+  {
+    "id": 20,
+    "name": "Coca-Cola 2 L",
+    "sku": "SKU-SNK-004",
+    "price": 95.0,
+    "stock": 217
+  },
+  {
+    "id": 32,
+    "name": "biscuit",
+    "sku": "BISCUIT",
+    "price": 100.0,
+    "stock": 46
+  },
+  {
+    "id": 33,
+    "name": "LUX-SABOON",
+    "sku": "SOAP",
+    "price": 100.0,
+    "stock": 46
+  }
+]

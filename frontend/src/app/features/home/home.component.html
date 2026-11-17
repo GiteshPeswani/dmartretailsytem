@@ -1,0 +1,259 @@
+<!-- Hero Section -->
+<section class="home-hero border-bottom">
+  <div class="container py-4 py-lg-5">
+    <div class="row align-items-center g-4">
+      <!-- Left Column: Value Proposition -->
+      <div class="col-lg-7">
+        <div class="hero-eyebrow text-uppercase fw-semibold mb-2">
+          <i class="bi bi-shield-check text-success me-1"></i> Authentic Grocery Retail
+        </div>
+        <h1 class="hero-title mb-3">
+          Daily essentials at <span class="highlight-green">D-Mart prices</span>.
+        </h1>
+        <p class="hero-subtitle mb-4">
+          Fresh groceries, kitchen staples, dairy, and household essentials at guaranteed lowest prices delivered right to your doorstep.
+        </p>
+        <div class="d-flex flex-wrap gap-2 gap-sm-3 mb-3">
+          <a routerLink="/products" class="btn btn-cta">
+            <i class="bi bi-bag-check-fill me-1"></i> Shop Now
+          </a>
+          <a routerLink="/products" class="btn btn-outline-green">
+            <i class="bi bi-grid-fill me-1"></i> Explore Categories
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Today's Deals Card / Visual Strip -->
+      <div class="col-lg-5">
+        <div class="hero-deals-card">
+          <div class="deals-header d-flex justify-content-between align-items-center">
+            <span class="deals-badge"><i class="bi bi-lightning-charge-fill me-1"></i> TODAY'S VALUE PICKS</span>
+            <span class="deals-sub">Save Minimum 10%–30%</span>
+          </div>
+          <div class="deals-list">
+            <div class="deal-item d-flex align-items-center gap-3">
+              <div class="deal-icon bg-light text-success">
+                <i class="bi bi-basket2-fill"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="deal-title">Atta, Rice &amp; Pulses</div>
+                <div class="deal-desc text-muted">Daily pantry staples with direct mill sourcing</div>
+              </div>
+              <span class="deal-tag">Up to 25% OFF</span>
+            </div>
+
+            <div class="deal-item d-flex align-items-center gap-3">
+              <div class="deal-icon bg-light text-primary">
+                <i class="bi bi-cup-hot-fill"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="deal-title">Edible Oils &amp; Ghee</div>
+                <div class="deal-desc text-muted">100% pure quality with direct sourcing</div>
+              </div>
+              <span class="deal-tag">Flat 15% OFF</span>
+            </div>
+
+            <div class="deal-item d-flex align-items-center gap-3">
+              <div class="deal-icon bg-light text-warning">
+                <i class="bi bi-stars"></i>
+              </div>
+              <div class="flex-grow-1">
+                <div class="deal-title">Household &amp; Cleaning</div>
+                <div class="deal-desc text-muted">Value packs and combo family savings</div>
+              </div>
+              <span class="deal-tag">Save ₹50+</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slim Trust Strip -->
+  <div class="hero-trust-bar py-2">
+    <div class="container d-flex align-items-center justify-content-center flex-wrap gap-3 text-center">
+      <span class="text-secondary small"><i class="bi bi-shield-check text-success me-1"></i> 100% Genuine Quality</span>
+      <span class="text-muted d-none d-sm-inline">&bull;</span>
+      <span class="text-secondary small"><i class="bi bi-tag-fill text-success me-1"></i> Everyday Low Prices</span>
+      <span class="text-muted d-none d-sm-inline">&bull;</span>
+      <span class="text-secondary small"><i class="bi bi-truck text-success me-1"></i> Express Store Pickup &amp; Delivery</span>
+    </div>
+  </div>
+</section>
+
+<!-- Main Content Area -->
+<div class="container py-4">
+
+  <!-- Shop by Category -->
+  <section class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h2 class="section-heading mb-0">Shop by Category</h2>
+        <span class="section-sub text-muted">Explore fresh groceries and household essentials</span>
+      </div>
+      <a routerLink="/products" class="view-all-link">
+        View All <i class="bi bi-chevron-right"></i>
+      </a>
+    </div>
+
+    <!-- Category Skeleton Loader -->
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2 g-md-3" *ngIf="loading">
+      <div class="col" *ngFor="let s of [1,2,3,4,5,6]">
+        <div class="cat-card skeleton-box text-center p-3">
+          <div class="skeleton skeleton-circle mx-auto mb-2"></div>
+          <div class="skeleton skeleton-line w-75 mx-auto"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category List -->
+    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-4 row-cols-lg-6 g-2 g-md-3" *ngIf="!loading">
+      <div class="col" *ngFor="let cat of categories">
+        <a [routerLink]="['/products']" [queryParams]="{ categoryId: cat.id }" class="cat-card-link text-decoration-none">
+          <div class="cat-card text-center p-3">
+            <div class="cat-icon-wrap mx-auto mb-2">
+              <i class="bi bi-basket3"></i>
+            </div>
+            <div class="cat-name text-truncate">{{ cat.name }}</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <!-- Empty State for Categories -->
+    <div class="empty-state-box text-center py-4" *ngIf="!loading && categories.length === 0">
+      <i class="bi bi-folder2-open text-muted fs-3 mb-2"></i>
+      <p class="text-muted small mb-0">No categories currently available.</p>
+    </div>
+  </section>
+
+  <!-- Featured Products Section -->
+  <section class="mb-5">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <div>
+        <h2 class="section-heading mb-0">Featured Products</h2>
+        <span class="section-sub text-muted">Best value picks with verified authenticity</span>
+      </div>
+      <a routerLink="/products" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        See All Products
+      </a>
+    </div>
+
+    <!-- Products Skeleton Loader -->
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3" *ngIf="loading">
+      <div class="col" *ngFor="let s of [1,2,3,4,5,6,7,8]">
+        <div class="product-item-card p-3">
+          <div class="skeleton skeleton-img mb-3"></div>
+          <div class="skeleton skeleton-line w-50 mb-2"></div>
+          <div class="skeleton skeleton-line w-100 mb-2"></div>
+          <div class="skeleton skeleton-line w-75 mb-3"></div>
+          <div class="skeleton skeleton-btn w-100"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-4 g-3" *ngIf="!loading">
+      <div class="col" *ngFor="let product of featuredProducts">
+        <div class="product-item-card h-100 d-flex flex-column">
+
+          <!-- Card Header Badges: Discount on Left, On-chain Dot on Right -->
+          <div class="card-top-bar d-flex justify-content-between align-items-center mb-2">
+            <div>
+              <span class="tag-discount" *ngIf="product.discountPercent > 0">
+                {{ product.discountPercent }}% OFF
+              </span>
+            </div>
+            <div>
+              <span class="chain-indicator"
+                    *ngIf="product.blockchainStatus === 'CONFIRMED'"
+                    title="Authenticity verified on blockchain">
+                <i class="bi bi-patch-check-fill text-indigo"></i>
+                <span class="chain-text">Verified</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Product Image -->
+          <a [routerLink]="['/products', product.id]" class="product-img-box text-decoration-none">
+            <div class="product-img-inner overflow-hidden">
+              <img [src]="product | productImage" [alt]="product.name" class="product-thumb-img" loading="lazy">
+            </div>
+          </a>
+
+          <!-- Details -->
+          <div class="product-info-box d-flex flex-column flex-grow-1 pt-2">
+            <span class="product-category text-uppercase">{{ product.categoryName || 'Grocery' }}</span>
+            <h3 class="product-name">
+              <a [routerLink]="['/products', product.id]" class="text-decoration-none text-dark">
+                {{ product.name }}
+              </a>
+            </h3>
+            <div class="product-sku text-muted">SKU: {{ product.sku }}</div>
+
+            <!-- Price Row -->
+            <div class="product-price-block mt-auto pt-2 pb-2">
+              <div class="d-flex align-items-baseline gap-2">
+                <span class="price-current">&#8377;{{ product.effectivePrice }}</span>
+                <span class="price-mrp" *ngIf="product.discountPercent > 0">&#8377;{{ product.price }}</span>
+              </div>
+              <div class="stock-status small mt-1">
+                <span [class.text-success]="product.stockQuantity > 0" [class.text-danger]="product.stockQuantity === 0">
+                  <i class="bi" [class.bi-check-circle-fill]="product.stockQuantity > 0" [class.bi-x-circle-fill]="product.stockQuantity === 0"></i>
+                  {{ product.stockQuantity > 0 ? (product.stockQuantity + ' in stock') : 'Out of stock' }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Add to Cart CTA -->
+            <button class="btn btn-outline-green btn-sm w-100 mt-2"
+                    [disabled]="product.stockQuantity === 0"
+                    (click)="addToCart(product)">
+              <i class="bi bi-plus-lg me-1"></i> Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for Products -->
+    <div class="empty-state-box text-center py-5" *ngIf="!loading && featuredProducts.length === 0">
+      <i class="bi bi-box2 text-muted fs-1 mb-2"></i>
+      <h5 class="fw-semibold text-dark">No products found</h5>
+      <p class="text-muted small">Our shelves are being replenished. Please check back shortly.</p>
+    </div>
+  </section>
+
+  <!-- D-Mart Grocery Deals Banner -->
+  <section class="row g-3 mb-4">
+    <div class="col-md-6">
+      <div class="promo-banner bg-staples p-4 rounded-3 d-flex flex-column justify-content-between">
+        <div>
+          <span class="promo-badge mb-2">Pantry Essentials</span>
+          <h4 class="promo-title">D-Mart Daily Staples</h4>
+          <p class="promo-desc mb-3">Flour, rice, pulses &amp; cooking oils at unbeatable wholesale prices.</p>
+        </div>
+        <div>
+          <a routerLink="/products" class="btn btn-sm btn-dark px-3 fw-semibold">
+            Explore Staples <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="promo-banner bg-dairy p-4 rounded-3 d-flex flex-column justify-content-between">
+        <div>
+          <span class="promo-badge mb-2">Fresh Daily</span>
+          <h4 class="promo-title">Dairy &amp; Breakfast</h4>
+          <p class="promo-desc mb-3">Fresh milk, butter, cheese, and breakfast favorites direct from farms.</p>
+        </div>
+        <div>
+          <a routerLink="/products" class="btn btn-sm btn-dark px-3 fw-semibold">
+            Shop Breakfast <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>

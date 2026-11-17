@@ -1,0 +1,272 @@
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h3 class="fw-bold text-dark mb-1"><i class="bi bi-speedometer2 text-primary me-2"></i> Admin Operations Dashboard</h3>
+      <p class="text-muted small mb-0">Live retail metrics, inventory oversight, and blockchain audit synchronization</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a routerLink="/admin/products" class="btn btn-dmart btn-sm"><i class="bi bi-plus-circle me-1"></i> Add Product</a>
+      <a routerLink="/admin/orders" class="btn btn-outline-secondary btn-sm"><i class="bi bi-receipt me-1"></i> Orders</a>
+      <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary"></div>
+    <p class="text-muted mt-2">Aggregating live store data...</p>
+  </div>
+
+  <div *ngIf="!loading && summary">
+    <!-- 4 Key Retail Metric Cards -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-xl-4 g-3 mb-4">
+      <!-- Total Sales -->
+      <div class="col">
+        <div class="stat-card green d-flex gap-3 align-items-center">
+          <div class="stat-icon bg-success-subtle text-success rounded-3">
+            <i class="bi bi-currency-rupee fs-4"></i>
+          </div>
+          <div>
+            <div class="stat-label">Total Sales</div>
+            <div class="stat-value">&#8377;{{ summary.totalRevenue }}</div>
+            <div class="stat-sub">Cumulative order gross</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Orders -->
+      <div class="col">
+        <div class="stat-card blue d-flex gap-3 align-items-center">
+          <div class="stat-icon bg-primary-subtle text-primary rounded-3">
+            <i class="bi bi-bag-check fs-4"></i>
+          </div>
+          <div>
+            <div class="stat-label">Total Orders</div>
+            <div class="stat-value">{{ summary.totalOrders }}</div>
+            <div class="stat-sub">Processed through checkout</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Products -->
+      <div class="col">
+        <div class="stat-card teal d-flex gap-3 align-items-center">
+          <div class="stat-icon bg-info-subtle text-info rounded-3">
+            <i class="bi bi-boxes fs-4"></i>
+          </div>
+          <div>
+            <div class="stat-label">Products Active</div>
+            <div class="stat-value">{{ summary.totalProducts }}</div>
+            <div class="stat-sub">In verified catalogue</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total Customers -->
+      <div class="col">
+        <div class="stat-card amber d-flex gap-3 align-items-center">
+          <div class="stat-icon bg-warning-subtle text-warning rounded-3">
+            <i class="bi bi-people fs-4"></i>
+          </div>
+          <div>
+            <div class="stat-label">Customers</div>
+            <div class="stat-value">{{ summary.totalCustomers }}</div>
+            <div class="stat-sub">Registered accounts</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOCKCHAIN TRANSACTION DASHBOARD SECTION -->
+    <div class="dmart-card mb-4" style="border-left: 4px solid var(--c-chain) !important;">
+      <div class="dmart-card-head d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+          <div class="dmart-card-icon chain">
+            <i class="bi bi-diagram-3-fill"></i>
+          </div>
+          <div>
+            <div class="dmart-card-title">Blockchain Transaction Dashboard</div>
+            <div class="dmart-card-subtitle">Real-time synchronization metrics from the Ethereum/EVM smart contract ledger</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" (click)="loadBlockchainStats()">
+          <i class="bi bi-arrow-repeat me-1"></i> Refresh Ledger Stats
+        </button>
+      </div>
+
+      <div class="dmart-card-body">
+        <!-- 4 Transaction Counter Metric Cards -->
+        <div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+          <!-- Total Transactions -->
+          <div class="col">
+            <div class="stat-card indigo p-3 text-center">
+              <div class="stat-label">Total Writes</div>
+              <div class="stat-value my-1">{{ blockchainStats?.totalTransactions ?? 0 }}</div>
+              <span class="chip chip-chain">All on-chain writes</span>
+            </div>
+          </div>
+
+          <!-- Successful Transactions -->
+          <div class="col">
+            <div class="stat-card green p-3 text-center">
+              <div class="stat-label text-success">Confirmed</div>
+              <div class="stat-value text-success my-1">{{ blockchainStats?.confirmedTransactions ?? 0 }}</div>
+              <span class="chip chip-verified">Mined in Block</span>
+            </div>
+          </div>
+
+          <!-- Pending Transactions -->
+          <div class="col">
+            <div class="stat-card amber p-3 text-center">
+              <div class="stat-label text-warning">Pending</div>
+              <div class="stat-value text-warning my-1">{{ blockchainStats?.pendingTransactions ?? 0 }}</div>
+              <span class="chip chip-pending">In Mempool</span>
+            </div>
+          </div>
+
+          <!-- Failed Transactions -->
+          <div class="col">
+            <div class="stat-card red p-3 text-center">
+              <div class="stat-label text-danger">Failed</div>
+              <div class="stat-value text-danger my-1">{{ blockchainStats?.failedTransactions ?? 0 }}</div>
+              <span class="chip chip-tampered">Gas Revert / Error</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transaction Table -->
+        <div class="table-responsive">
+          <table class="dmart-table mb-0">
+            <thead>
+              <tr>
+                <th>Tx Hash</th>
+                <th>Block #</th>
+                <th>Event Type</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let tx of blockchainStats?.recentTransactions">
+                <td>
+                  <code class="font-monospace small" [ngClass]="tx.status === 'FAILED' ? 'text-danger' : 'text-primary'">
+                    {{ tx.txHash ? (tx.txHash.substring(0, 10) + '...' + tx.txHash.substring(tx.txHash.length - 6)) : (tx.status === 'FAILED' ? '(failed)' : '(pending)') }}
+                  </code>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border font-monospace">
+                    {{ tx.blockNumber ? '#' + tx.blockNumber : (tx.status === 'FAILED' ? '-' : 'Pending') }}
+                  </span>
+                </td>
+                <td>
+                  <span class="chip chip-info">
+                    {{ tx.eventType || tx.entityType }}
+                  </span>
+                </td>
+                <td>
+                  <span class="chip" [ngClass]="{
+                    'chip-verified': tx.status === 'CONFIRMED',
+                    'chip-pending': tx.status === 'PENDING',
+                    'chip-tampered': tx.status === 'FAILED'
+                  }">{{ tx.status }}</span>
+                </td>
+                <td class="small text-muted">{{ tx.submittedAt | date:'medium' }}</td>
+              </tr>
+              <tr *ngIf="!blockchainStats?.recentTransactions?.length">
+                <td colspan="5" class="text-center text-muted py-4">No transactions logged yet. Place an order or register a product batch to see on-chain transactions.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Metric Badges: Inventory Health -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="dmart-card p-4">
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-exclamation-triangle text-warning me-2"></i> Inventory Health</h6>
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border">
+            <div>
+              <div class="fw-bold text-dark">Low-Stock Alert Items</div>
+              <small class="text-muted">Items with less than 10 units in stock</small>
+            </div>
+            <span class="badge bg-danger fs-6 rounded-pill px-3 py-2">{{ summary.lowStockCount }} items</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="dmart-card p-4">
+          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-shield-check text-primary me-2"></i> Network Security Overview</h6>
+          <div class="d-flex justify-content-between align-items-center p-3 bg-light rounded-3 border">
+            <div>
+              <div class="fw-bold text-dark">Smart Contract Standard</div>
+              <small class="text-muted">OpenZeppelin Ownable2Step & Keccak-256</small>
+            </div>
+            <a routerLink="/blockchain-explorer" class="btn btn-outline-primary btn-sm">Full Blockchain Explorer</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Orders Table -->
+    <div class="dmart-card">
+      <div class="dmart-card-head d-flex justify-content-between align-items-center">
+        <div>
+          <div class="dmart-card-title">Recent Store Orders</div>
+          <div class="dmart-card-subtitle">Latest incoming retail orders & cryptographic sync state</div>
+        </div>
+        <a routerLink="/admin/orders" class="btn btn-sm btn-outline-primary">View All Orders</a>
+      </div>
+
+      <div class="dmart-card-body p-0">
+        <div class="table-responsive">
+          <table class="dmart-table mb-0">
+            <thead>
+              <tr>
+                <th>Order No.</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Blockchain Sync</th>
+                <th>Date</th>
+                <th class="text-end">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of summary.recentOrders">
+                <td class="fw-bold text-dark">{{ order.orderNumber }}</td>
+                <td>{{ order.customerName }}</td>
+                <td class="fw-bold">&#8377;{{ order.totalAmount }}</td>
+                <td>
+                  <span class="chip" [ngClass]="{
+                    'chip-pending': order.status === 'PENDING',
+                    'chip-info': order.status === 'CONFIRMED' || order.status === 'PROCESSING',
+                    'chip-chain': order.status === 'SHIPPED',
+                    'chip-verified': order.status === 'DELIVERED',
+                    'chip-tampered': order.status === 'CANCELLED'
+                  }">{{ order.status }}</span>
+                </td>
+                <td>
+                  <span class="chip" [ngClass]="{
+                    'chip-verified': order.blockchainStatus === 'CONFIRMED',
+                    'chip-pending': order.blockchainStatus === 'PENDING',
+                    'chip-tampered': order.blockchainStatus === 'FAILED',
+                    'chip-muted': order.blockchainStatus === 'NOT_SUBMITTED'
+                  }">{{ order.blockchainStatus }}</span>
+                </td>
+                <td class="small text-muted">{{ order.createdAt | date:'short' }}</td>
+                <td class="text-end">
+                  <a [routerLink]="['/orders', order.id]" class="btn btn-outline-secondary btn-sm">Verify On-Chain</a>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

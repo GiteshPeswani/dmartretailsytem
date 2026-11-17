@@ -1,0 +1,102 @@
+<!-- Clean Centered Authentication Card (No Side Panel) -->
+<div class="auth-page-wrap py-5">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+
+        <!-- Login Card -->
+        <div class="auth-card">
+
+          <!-- Brand & Header -->
+          <div class="text-center mb-4">
+            <div class="auth-icon-wrap mx-auto mb-2">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <h2 class="auth-title mb-1">Sign In to D-Mart</h2>
+            <p class="auth-subtitle text-muted small mb-0">Access your grocery orders and account</p>
+          </div>
+
+          <!-- Error Alert -->
+          <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-center gap-2 py-2 px-3 small rounded-3 mb-3">
+            <i class="bi bi-exclamation-triangle-fill flex-shrink-0"></i>
+            <div>{{ errorMessage }}</div>
+          </div>
+
+          <!-- Form -->
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label class="form-label small fw-semibold text-dark mb-1">Email Address</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                <input type="email" class="form-control border-start-0 ps-0" formControlName="email"
+                       placeholder="name@example.com"
+                       [ngClass]="{ 'is-invalid': loginForm.get('email')?.touched && loginForm.get('email')?.invalid }">
+              </div>
+              <div class="invalid-feedback d-block"
+                   *ngIf="loginForm.get('email')?.touched && loginForm.get('email')?.invalid">
+                Please enter a valid email address.
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small fw-semibold text-dark mb-0">Password</label>
+              </div>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
+                <input type="password" class="form-control border-start-0 ps-0" formControlName="password"
+                       placeholder="Enter your password"
+                       [ngClass]="{ 'is-invalid': loginForm.get('password')?.touched && loginForm.get('password')?.invalid }">
+              </div>
+              <div class="invalid-feedback d-block"
+                   *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid">
+                Password is required.
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-auth-submit w-100 py-2 fw-bold fs-6 mb-3" [disabled]="loading">
+              <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+              {{ loading ? 'Signing In...' : 'Sign In' }}
+            </button>
+          </form>
+
+          <!-- Register Link -->
+          <div class="text-center small text-muted mb-4">
+            Don't have an account?
+            <a routerLink="/auth/register" class="fw-semibold text-decoration-none text-green ms-1">Register here</a>
+          </div>
+
+          <!-- Demo Quick-Fill -->
+          <div class="demo-quickfill-box pt-3 border-top">
+            <div class="mb-2">
+              <span class="demo-label text-uppercase text-muted fw-bold">Test Accounts Quick-Fill:</span>
+            </div>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-sm btn-outline-danger flex-fill d-flex align-items-center justify-content-center gap-1"
+                      (click)="quickFill('admin')">
+                <i class="bi bi-shield-lock"></i> Admin
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-success flex-fill d-flex align-items-center justify-content-center gap-1"
+                      (click)="quickFill('manager')">
+                <i class="bi bi-boxes"></i> Store Manager
+              </button>
+            </div>
+          </div>
+
+          <!-- Trust Footer Strip -->
+          <div class="auth-card-footer text-center mt-3 pt-3 border-top">
+            <span class="small text-muted" style="font-size: 0.75rem;">
+              <i class="bi bi-shield-check text-indigo me-1"></i> Secured with on-chain cryptographic audit trail
+            </span>
+          </div>
+
+        </div><!-- /auth-card -->
+
+      </div>
+    </div>
+  </div>
+</div>

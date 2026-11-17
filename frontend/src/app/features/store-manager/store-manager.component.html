@@ -1,0 +1,474 @@
+<div class="container py-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+      <h3 class="fw-bold text-dark mb-1"><i class="bi bi-boxes text-success me-2"></i> Store Operations Hub</h3>
+      <p class="text-muted small mb-0">Manage floor inventory, execute batch receipts, and process store fulfillment</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <a routerLink="/" class="btn btn-outline-secondary btn-sm"><i class="bi bi-shop me-1"></i> Storefront</a>
+      <button class="btn btn-danger btn-sm d-flex align-items-center gap-1" (click)="logout()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav nav-pills mb-4 gap-2">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'inventory'" (click)="activeTab = 'inventory'">
+        <i class="bi bi-box-seam me-1"></i> Stock Level Management
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'orders'" (click)="activeTab = 'orders'">
+        <i class="bi bi-truck me-1"></i> Store Fulfillment ({{ orders.length }})
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="activeTab === 'batches'" (click)="activeTab = 'batches'; loadBatches()">
+        <i class="bi bi-qr-code me-1"></i> Product Batches & QR ({{ batches.length }})
+      </button>
+    </li>
+    <li class="nav-item" *ngIf="selectedProduct">
+      <button class="nav-link" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+        <i class="bi bi-clock-history me-1"></i> Movement Log: {{ selectedProduct.sku }}
+      </button>
+    </li>
+  </ul>
+
+  <!-- Tab 1: Inventory Table -->
+  <div class="card card-dmart border-0 shadow-sm p-4" *ngIf="activeTab === 'inventory'">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th>SKU</th>
+            <th>Product Name</th>
+            <th>Category</th>
+            <th>Current Stock</th>
+            <th>Status</th>
+            <th>Blockchain</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of products">
+            <td class="fw-bold font-monospace text-dark">{{ p.sku }}</td>
+            <td>
+              <div class="fw-bold text-dark">{{ p.name }}</div>
+              <small class="text-muted">&#8377;{{ p.effectivePrice }} <span *ngIf="p.discountPercent > 0" class="badge bg-success-subtle text-success ms-1">{{ p.discountPercent }}% off</span></small>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ p.categoryName || 'General' }}</span></td>
+            <td>
+              <span class="fw-bold fs-6" [ngClass]="p.stockQuantity <= 10 ? 'text-danger' : 'text-success'">
+                {{ p.stockQuantity }} units
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="p.active ? 'bg-success' : 'bg-secondary'">
+                {{ p.active ? 'ACTIVE' : 'INACTIVE' }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'badge-bc-confirmed': p.blockchainStatus === 'CONFIRMED',
+                'badge-bc-pending': p.blockchainStatus === 'PENDING',
+                'badge-bc-failed': p.blockchainStatus === 'FAILED',
+                'bg-light text-dark border': p.blockchainStatus === 'NOT_SUBMITTED'
+              }">{{ p.blockchainStatus }}</span>
+            </td>
+            <td class="text-end">
+              <div class="btn-group">
+                <button class="btn btn-sm btn-outline-success" (click)="openAdjustModal(p)">
+                  <i class="bi bi-plus-slash-minus me-1"></i> Stock Adjust
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" (click)="viewMovements(p)">
+                  <i class="bi bi-clock-history"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 2: Orders Fulfillment -->
+  <div class="card card-dmart border-0 shadow-sm p-4" *ngIf="activeTab === 'orders'">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th>Order No.</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Current Status</th>
+            <th>Blockchain</th>
+            <th class="text-end">Fulfillment Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let ord of orders">
+            <td class="fw-bold font-monospace text-dark">{{ ord.orderNumber }}</td>
+            <td>
+              <div>{{ ord.customerName }}</div>
+              <small class="text-muted">{{ ord.customerEmail }}</small>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ ord.items.length }} items</span></td>
+            <td class="fw-bold text-dark">&#8377;{{ ord.totalAmount }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-warning text-dark': ord.status === 'PENDING',
+                'bg-info text-dark': ord.status === 'CONFIRMED',
+                'bg-primary': ord.status === 'PROCESSING',
+                'bg-secondary': ord.status === 'SHIPPED',
+                'bg-success': ord.status === 'DELIVERED',
+                'bg-danger': ord.status === 'CANCELLED'
+              }">{{ ord.status }}</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'badge-bc-confirmed': ord.blockchainStatus === 'CONFIRMED',
+                'badge-bc-pending': ord.blockchainStatus === 'PENDING',
+                'badge-bc-failed': ord.blockchainStatus === 'FAILED',
+                'bg-light text-dark border': ord.blockchainStatus === 'NOT_SUBMITTED'
+              }">{{ ord.blockchainStatus }}</span>
+            </td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-primary" (click)="openOrderStatusModal(ord)" 
+                      [disabled]="ord.status === 'DELIVERED' || ord.status === 'CANCELLED'">
+                <i class="bi bi-arrow-right-circle me-1"></i> Advance Status
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 3: History (Movement Log) -->
+  <div class="card card-dmart border-0 shadow-sm p-4" *ngIf="activeTab === 'history' && selectedProduct">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h5 class="fw-bold text-dark mb-0">
+        Inventory Movement Audit Trail: {{ selectedProduct.name }}
+      </h5>
+      <button class="btn btn-sm btn-outline-secondary" (click)="activeTab = 'inventory'">Back to Inventory</button>
+    </div>
+
+    <div *ngIf="movements.length === 0" class="text-muted small py-4 text-center">
+      No movement transactions recorded for this product yet.
+    </div>
+
+    <div class="table-responsive" *ngIf="movements.length > 0">
+      <table class="table table-sm align-middle">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th>Timestamp</th>
+            <th>Type</th>
+            <th>Change</th>
+            <th>Before</th>
+            <th>After</th>
+            <th>Actor</th>
+            <th>Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of movements">
+            <td class="small text-muted">{{ m.createdAt | date:'short' }}</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-success': m.movementType === 'PURCHASE' || m.movementType === 'RETURN',
+                'bg-danger': m.movementType === 'SALE' || m.movementType === 'DAMAGED',
+                'bg-info text-dark': m.movementType === 'ADJUSTMENT'
+              }">{{ m.movementType }}</span>
+            </td>
+            <td class="fw-bold" [ngClass]="m.quantityChange > 0 ? 'text-success' : 'text-danger'">
+              {{ m.quantityChange > 0 ? '+' + m.quantityChange : m.quantityChange }}
+            </td>
+            <td>{{ m.quantityBefore }}</td>
+            <td class="fw-bold text-dark">{{ m.quantityAfter }}</td>
+            <td class="small">{{ m.userName }}</td>
+            <td class="small text-muted">{{ m.reason }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab 4: Product Batch Tracking & QR Codes -->
+  <div class="card card-dmart border-0 shadow-sm p-4" *ngIf="activeTab === 'batches'">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+      <div>
+        <h5 class="fw-bold text-dark mb-1">
+          <i class="bi bi-qr-code text-primary me-2"></i> Product Batch Provenance &amp; Ledger
+        </h5>
+        <p class="text-muted small mb-0">Record factory dispatch, warehouse arrival, and store arrival on the blockchain ledger.</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a routerLink="/batch-tracking" target="_blank" class="btn btn-outline-primary btn-sm">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Open Ledger View
+        </a>
+        <button class="btn btn-success btn-sm" (click)="openCreateBatchModal()">
+          <i class="bi bi-plus-circle me-1"></i> Register New Batch
+        </button>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light small text-uppercase">
+          <tr>
+            <th>Batch Number</th>
+            <th>Product</th>
+            <th>Manufacturer</th>
+            <th>Quantity</th>
+            <th>Current Stage</th>
+            <th>Blockchain Sync</th>
+            <th>QR Code</th>
+            <th class="text-end">Record Stage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of batches">
+            <td>
+              <span class="fw-bold font-monospace text-dark">{{ b.batchNumber }}</span>
+              <div class="text-muted small" style="font-size: 0.72rem;">ID: #{{ b.id }}</div>
+            </td>
+            <td>
+              <div class="fw-bold text-dark">{{ b.productName }}</div>
+              <small class="text-muted font-monospace">SKU: {{ b.productSku }}</small>
+            </td>
+            <td>
+              <div class="small fw-semibold">{{ b.manufacturerName }}</div>
+              <small class="text-muted">Mfg: {{ b.manufactureDate }}</small>
+            </td>
+            <td class="fw-bold">{{ b.quantity }} units</td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'bg-info text-dark': b.currentStage === 'MANUFACTURED',
+                'bg-warning text-dark': b.currentStage === 'WAREHOUSE_ARRIVED',
+                'bg-success': b.currentStage === 'STORE_ARRIVED'
+              }">
+                <i class="bi bi-geo-alt-fill me-1"></i> {{ b.currentStage }}
+              </span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="{
+                'badge-bc-confirmed': b.blockchainStatus === 'CONFIRMED',
+                'badge-bc-pending': b.blockchainStatus === 'PENDING',
+                'badge-bc-failed': b.blockchainStatus === 'FAILED'
+              }">{{ b.blockchainStatus }}</span>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" (click)="openQRModal(b)">
+                <i class="bi bi-qr-code"></i> View QR
+              </button>
+            </td>
+            <td class="text-end">
+              <!-- If MANUFACTURED: allow transition to WAREHOUSE_ARRIVED -->
+              <button *ngIf="b.currentStage === 'MANUFACTURED'" 
+                      class="btn btn-sm btn-outline-warning" 
+                      (click)="recordWarehouseArrival(b.id)">
+                <i class="bi bi-truck me-1"></i> Warehouse Arrival
+              </button>
+              <!-- If WAREHOUSE_ARRIVED: allow transition to STORE_ARRIVED -->
+              <button *ngIf="b.currentStage === 'WAREHOUSE_ARRIVED'" 
+                      class="btn btn-sm btn-outline-success" 
+                      (click)="recordStoreArrival(b.id)">
+                <i class="bi bi-shop me-1"></i> Store Shelf Arrival
+              </button>
+              <!-- If STORE_ARRIVED: fully arrived -->
+              <span *ngIf="b.currentStage === 'STORE_ARRIVED'" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                <i class="bi bi-check2-all me-1"></i> On Store Shelf
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="batches.length === 0">
+            <td colspan="8" class="text-center py-4 text-muted">No product batches found. Click "Register New Batch" to add one.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Inventory Adjustment Modal -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showAdjustModal && selectedProduct" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold">Adjust Inventory: {{ selectedProduct.name }}</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeAdjustModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="p-3 bg-light rounded-3 mb-3 border">
+          <div class="d-flex justify-content-between small">
+            <span class="text-muted">SKU: <strong>{{ selectedProduct.sku }}</strong></span>
+            <span class="text-muted">Current Stock: <strong class="text-dark">{{ selectedProduct.stockQuantity }} units</strong></span>
+          </div>
+        </div>
+
+        <form [formGroup]="adjustForm" (ngSubmit)="submitAdjustment()">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Movement Reason Code</label>
+            <select class="form-select" formControlName="movementType">
+              <option value="PURCHASE">PURCHASE - Supplier Stock Inbound (+)</option>
+              <option value="RETURN">RETURN - Customer Return / Stock Recovery (+)</option>
+              <option value="ADJUSTMENT">ADJUSTMENT - Manual Stock Audit Correction</option>
+              <option value="DAMAGED">DAMAGED - Write-off / Damaged Goods (-)</option>
+            </select>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Quantity Delta (positive or negative)</label>
+            <input type="number" class="form-control" formControlName="quantityChange" placeholder="e.g. 50 or -5">
+            <div class="form-text small text-muted">Use negative numbers to reduce stock for write-offs or shrinkage.</div>
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label small fw-semibold">Audit Explanation / Batch PO Number</label>
+            <input type="text" class="form-control" formControlName="reason" placeholder="e.g. Received PO-8823 from Vendor">
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeAdjustModal()">Cancel</button>
+            <button type="submit" class="btn btn-success" [disabled]="adjusting">
+              <span *ngIf="adjusting" class="spinner-border spinner-border-sm me-1"></span>
+              Commit Stock Adjustment
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Order Status Modal for Store Manager -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showOrderStatusModal && selectedOrder" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold">Advance Fulfillment: {{ selectedOrder.orderNumber }}</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeOrderStatusModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="mb-3">
+          <span class="text-muted small">Current State:</span>
+          <div><span class="badge bg-secondary fs-6">{{ selectedOrder.status }}</span></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Permitted Next Transition</label>
+          <select class="form-select" [(ngModel)]="targetOrderStatus">
+            <option value="" disabled>Select Fulfillment State</option>
+            <option *ngFor="let s of getPermittedNextStatuses(selectedOrder.status)" [value]="s">{{ s }}</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label class="form-label small fw-semibold">Operator / Dispatch Notes</label>
+          <input type="text" class="form-control" [(ngModel)]="orderReason" placeholder="e.g. Dispatched with Driver Rajan #MH02-1234">
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <button type="button" class="btn btn-outline-secondary" (click)="closeOrderStatusModal()">Cancel</button>
+          <button type="submit" class="btn btn-success" [disabled]="!targetOrderStatus || updatingOrder" (click)="submitOrderStatusUpdate()">
+            <span *ngIf="updatingOrder" class="spinner-border spinner-border-sm me-1"></span>
+            Broadcast to Blockchain
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 3: Register New Product Batch -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showCreateBatchModal" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2"></i> Register Product Batch</h5>
+        <button type="button" class="btn-close btn-close-white" (click)="closeCreateBatchModal()"></button>
+      </div>
+      <div class="modal-body p-4">
+        <form [formGroup]="batchForm" (ngSubmit)="submitCreateBatch()">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Batch Number / Lot ID</label>
+            <input type="text" class="form-control font-monospace" formControlName="batchNumber" placeholder="e.g. BATCH-2026-MILK-05">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Select Product</label>
+            <select class="form-select" formControlName="productSku" (change)="onProductSelect($event)">
+              <option *ngFor="let p of products" [value]="p.sku">{{ p.name }} ({{ p.sku }})</option>
+            </select>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Manufacturer Name</label>
+              <input type="text" class="form-control" formControlName="manufacturerName">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Batch Quantity</label>
+              <input type="number" class="form-control" formControlName="quantity">
+            </div>
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Manufacture Date</label>
+              <input type="date" class="form-control" formControlName="manufactureDate">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Expiry Date</label>
+              <input type="date" class="form-control" formControlName="expiryDate">
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+            <button type="button" class="btn btn-outline-secondary" (click)="closeCreateBatchModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="creatingBatch">
+              <span *ngIf="creatingBatch" class="spinner-border spinner-border-sm me-1"></span>
+              Register & Sign on Blockchain
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal 4: Batch QR Code Modal -->
+<div class="modal fade show d-block" tabindex="-1" *ngIf="showQRModal && selectedBatchForQR" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg text-center p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold text-dark mb-0">Batch Provenance QR Code</h5>
+        <button type="button" class="btn-close" (click)="closeQRModal()"></button>
+      </div>
+      <div class="my-3">
+        <div class="p-3 bg-white rounded border shadow-sm d-inline-block">
+          <img [src]="getBatchQrUrl(selectedBatchForQR)" [alt]="selectedBatchForQR.batchNumber" 
+               width="200" height="200" class="img-fluid rounded">
+        </div>
+      </div>
+      <h6 class="font-monospace fw-bold text-dark mb-1">{{ selectedBatchForQR.batchNumber }}</h6>
+      <p class="text-muted small mb-3">{{ selectedBatchForQR.productName }} ({{ selectedBatchForQR.productSku }})</p>
+      
+      <div class="bg-light p-2 rounded border mb-3 small">
+        <div class="text-muted">Current Stage: <span class="fw-bold text-success">{{ selectedBatchForQR.currentStage }}</span></div>
+        <div class="text-muted">Status: <span class="badge bg-success">{{ selectedBatchForQR.blockchainStatus }}</span></div>
+      </div>
+
+      <div class="d-flex justify-content-center gap-2">
+        <a [routerLink]="['/batch-tracking']" [queryParams]="{ batchNumber: selectedBatchForQR.batchNumber }" 
+           target="_blank" class="btn btn-primary btn-sm" (click)="closeQRModal()">
+          <i class="bi bi-box-arrow-up-right me-1"></i> Open Customer Verification Page
+        </a>
+        <button class="btn btn-outline-secondary btn-sm" (click)="closeQRModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

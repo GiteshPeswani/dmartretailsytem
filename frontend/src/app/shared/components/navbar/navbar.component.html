@@ -1,0 +1,152 @@
+<!-- Main Retail Header -->
+<nav class="navbar navbar-expand-lg dmart-navbar sticky-top py-2">
+  <div class="container">
+
+    <!-- Brand / Logo -->
+    <a class="navbar-brand d-flex align-items-center gap-2 text-decoration-none" routerLink="/">
+      <div class="nav-brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <div>
+        <div class="nav-brand-name">D&middot;MART</div>
+        <div class="nav-brand-tagline">DAILY SAVINGS STORE</div>
+      </div>
+    </a>
+
+
+    <!-- Mobile Toggler -->
+    <button class="navbar-toggler text-white border-white ms-auto" type="button"
+            data-bs-toggle="collapse" data-bs-target="#navContent"
+            aria-controls="navContent" aria-expanded="false" aria-label="Toggle navigation">
+      <i class="bi bi-list fs-4"></i>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navContent">
+
+      <!-- Categories Dropdown -->
+      <div class="dropdown me-3 my-2 my-lg-0" [class.show]="categoryDropdownOpen">
+        <button class="btn btn-outline-light dropdown-toggle d-flex align-items-center gap-2"
+                type="button" (click)="toggleCategoryDropdown($event)">
+          <i class="bi bi-grid-fill"></i> All Categories
+        </button>
+        <ul class="dropdown-menu shadow" [class.show]="categoryDropdownOpen" (click)="closeDropdowns()">
+          <li><a class="dropdown-item" routerLink="/products">All Products</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li *ngFor="let cat of categories">
+            <a class="dropdown-item" [routerLink]="['/products']" [queryParams]="{ categoryId: cat.id }">
+              {{ cat.name }}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Search Bar -->
+      <form class="nav-search-wrap flex-grow-1 me-3 my-2 my-lg-0" (ngSubmit)="onSearch()">
+        <div class="input-group">
+          <input type="text" class="form-control"
+                 placeholder="Search for groceries, essentials, dairy, snacks..."
+                 [(ngModel)]="searchQuery" name="search">
+          <button class="btn btn-warning fw-bold px-3" type="submit">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Right Menu -->
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-2">
+
+        <!-- Cart -->
+        <li class="nav-item" *ngIf="!authService.isStaff()">
+          <a class="btn-nav-cart d-flex align-items-center gap-2 position-relative" routerLink="/cart">
+            <i class="bi bi-cart-fill"></i>
+            <span>Cart</span>
+            <span class="badge bg-warning text-dark rounded-pill fw-bold" *ngIf="cartService.itemCount() > 0">
+              {{ cartService.itemCount() }}
+            </span>
+          </a>
+        </li>
+
+        <!-- Auth / Profile Dropdown -->
+        <li class="nav-item dropdown" [class.show]="userDropdownOpen"
+            *ngIf="authService.isAuthenticated(); else guestTemplate">
+          <button class="btn-nav-user rounded-pill d-flex align-items-center gap-2 px-3 py-1"
+                  type="button" (click)="toggleUserDropdown($event)">
+            <i class="bi bi-person-circle fs-5"></i>
+            <span class="fw-semibold">{{ authService.currentUser()?.firstName }}</span>
+            <i class="bi bi-chevron-down small"></i>
+          </button>
+
+          <ul class="nav-dropdown dropdown-menu dropdown-menu-end" [class.show]="userDropdownOpen"
+              (click)="closeDropdowns()">
+
+            <!-- Signed-in identity header -->
+            <li class="px-3 py-2 border-bottom bg-light rounded-top">
+              <small class="text-muted d-block text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Signed in as</small>
+              <strong class="text-dark d-block text-truncate">{{ authService.currentUser()?.email }}</strong>
+            </li>
+
+            <!-- Customer links -->
+            <li *ngIf="authService.isCustomer()">
+              <a class="dropdown-item py-2" routerLink="/orders">
+                <i class="bi bi-bag-check text-primary me-2"></i> My Orders
+              </a>
+            </li>
+
+            <!-- Admin links -->
+            <li *ngIf="authService.isAdmin()">
+              <h6 class="dropdown-header fw-bold text-uppercase mt-1" style="font-size: 0.7rem; letter-spacing: 0.5px; color: var(--c-chain);">Admin Portal</h6>
+              <a class="dropdown-item py-2" routerLink="/admin/dashboard">
+                <i class="bi bi-speedometer2 me-2"></i> Dashboard
+              </a>
+              <a class="dropdown-item py-2" routerLink="/admin/products">
+                <i class="bi bi-box-seam me-2"></i> Manage Products
+              </a>
+              <a class="dropdown-item py-2" routerLink="/admin/categories">
+                <i class="bi bi-tags me-2"></i> Manage Categories
+              </a>
+              <a class="dropdown-item py-2" routerLink="/admin/orders">
+                <i class="bi bi-receipt me-2"></i> Manage Orders
+              </a>
+              <a class="dropdown-item py-2" routerLink="/batch-tracking">
+                <i class="bi bi-qr-code text-success me-2"></i> Batch Provenance &amp; QR
+              </a>
+              <a class="dropdown-item py-2" routerLink="/blockchain-explorer">
+                <i class="bi bi-shield-lock text-info me-2"></i> Audit Explorer
+              </a>
+            </li>
+
+            <!-- Store Manager links -->
+            <li *ngIf="authService.isStoreManager()">
+              <h6 class="dropdown-header fw-bold text-uppercase mt-1" style="font-size: 0.7rem; letter-spacing: 0.5px; color: var(--c-primary);">Store Operations</h6>
+              <a class="dropdown-item py-2" routerLink="/store-manager">
+                <i class="bi bi-boxes me-2"></i> Inventory &amp; Dispatch
+              </a>
+              <a class="dropdown-item py-2" routerLink="/batch-tracking">
+                <i class="bi bi-qr-code text-success me-2"></i> Batch Provenance &amp; QR
+              </a>
+            </li>
+
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <button class="dropdown-item py-2 text-danger fw-semibold d-flex align-items-center gap-2"
+                      (click)="logout()">
+                <i class="bi bi-box-arrow-right"></i> Sign Out
+              </button>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Guest links -->
+        <ng-template #guestTemplate>
+          <li class="nav-item">
+            <a class="btn btn-outline-light btn-sm rounded-pill px-3" routerLink="/auth/login">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="btn btn-warning btn-sm rounded-pill px-3 fw-bold" routerLink="/auth/register">Register</a>
+          </li>
+        </ng-template>
+
+      </ul>
+    </div><!-- /collapse -->
+  </div><!-- /container -->
+</nav>

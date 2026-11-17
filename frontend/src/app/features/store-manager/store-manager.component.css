@@ -1,0 +1,6 @@
+.card-dmart {
+  border-radius: 8px;
+}
+.nav-pills .nav-link.active {
+  background-color: var(--dmart-green);
+}
